@@ -1,5 +1,2 @@
 data/raw/
 data/processed/
-models/history.pkl
-models/latest_checkpoint.pth
-models/training_metrics.png
