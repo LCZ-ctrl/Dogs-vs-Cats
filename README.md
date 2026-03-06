@@ -1,6 +1,6 @@
 # Dogs vs. Cats
 
-This is a PyTorch implementation of the classic Kaggle competition **"Dogs vs. Cats"** based on CNN. It achieves approximately 97% accuracy on the validation set.  
+This is a PyTorch implementation of the classic Kaggle competition **"Dogs vs. Cats"** based on CNN. It achieves approximately 98% accuracy on the validation set.  
 I'm using `PyTorch 2.10.0+cu128` in `Python 3.12.0`.
 
 <br>
@@ -49,10 +49,13 @@ I place data argumentation in ```dataset.py```
 ```
 data_transforms = {
     'train': transforms.Compose([
-        transforms.RandomResizedCrop(IMG_SIZE),
+        transforms.RandomResizedCrop(IMG_SIZE, scale=(0.5, 1.0)),
         transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=15),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.03),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.RandomErasing(p=0.4, scale=(0.02, 0.2), ratio=(0.3, 3.3))
     ]),
 
     'val': transforms.Compose([
@@ -63,7 +66,19 @@ data_transforms = {
     ])
 }
 ```
-It converts images into tensors that model can accept, and improves model's generalization ability by augmenting the training set.
+It converts images into tensors that model can accept, and improves model's generalization ability by augmenting the training set.  
+
+```RandomResizedCrop(IMG_SIZE, scale=(0.5, 1.0))```: Randomly selects a region (50% - 100%) in the image, and then stretch or shrink it to the specified IMG_SIZE.  
+```RandomHorizontalFlip(p=0.5)```: 50% chance of flipping the image horizontally.  
+```RandomRotation(degrees=15)```: Rotate the image randomly between -15° and +15°.  
+```ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.03)```: Color fluctuation.  
+```RandomErasing(p=0.4, scale=(0.02, 0.2), ratio=(0.3, 3.3))```: 40% probability of erasing areas in the image.  
+
+## Model Architecture
+The network consists of three main components:
+- **Stem**: Initial three 3x3 convolutional layers and max pooling layer for downsampling and feature extraction.
+- **Residual Layers**: Four residual blocks that learn deep features while preserving gradients via skip connections.
+- **Classifier**: Average pooling layer and fully connected layers for final prediction.
 
 ## Train
 To start training, run the command - 
@@ -92,14 +107,52 @@ It randomly selects an image from the test set, and displays the image and the m
 <p align="center">
   <img src="./Images/Figure_2.png" width="330" />
   <img src="./Images/Figure_1.png" width="330" />
+  <br>
+  <img src="./Images/Figure_4.png" width="330" />
+  <img src="./Images/Figure_3.png" width="330" />
 </p>
 
-You can use my pretrained model to play: [best_model.pth](https://drive.google.com/uc?export=download&id=1je-Ft9CuVakb-sllV_hnVMicP1lbvw8S)
-
 ## Loss Curve
-As the picture says, the model can achieve approximately 97% accuracy on the validation set after training for 100 epochs. 🐶🐱
+As the picture says, the model can achieve approximately 98% accuracy on the validation set after training for 100 epochs. 🐶🐱
 
 <br>
 <p align="center">
   <img src="./Images/training_metrics.png" height="300" />
 </p>
+<br><br>
+
+## A Brief Introduction to CNN
+Convolutional Neural Networks (CNNs), also known as ConvNets, are neural network architectures inspired by the human visual system and are widely used in computer vision tasks. They are designed to process structured grid-like data, especially images by capturing spatial relationships between pixels.
+- Automatically learn hierarchical features through convolution operations, from simple edges and textures to complex shapes and objects.
+- Detect objects at different positions within an image, ensuring robustness to spatial variations.
+- Reduce computational complexity by processing local regions instead of the entire image at once.
+<br>
+<p align="center">
+  <img src="./Images/CNN.png" height="300" />
+  <br>
+  <em><strong>Convolutional Neural Networks</strong></em>
+</p>
+
+### Key components
+1. **Input Layer**: The input layer receives the raw image data and passes it to the network for processing. In CNNs, input is typically a 3D volume (width × height × depth).  
+2. **Convolutional Layer**: The Convolutional Layer is responsible for extracting important features from the input data. It applies a set of learnable filters (kernels) that slide over the image and compute the dot product between the filter weights and corresponding image patches, producing feature maps.
+3. **Activation Layer**: The Activation Layer introduces non-linearity into the network by applying an element-wise activation function (include ReLU, Tanh, etc.) to the output of the convolution layer. This enables the model to learn complex patterns beyond linear relationships.  
+4. **Pooling Layer**: The Pooling Layer is used to reduce the spatial dimensions of the feature maps, making computation faster, reducing memory usage and helping to prevent overfitting. It is typically inserted between convolutional layers in a CNN.  
+5. **Flattening**: Flattening converts the multi-dimensional feature maps into a one-dimensional vector after convolution and pooling. This vector is then passed to the fully connected layer for classification or regression.  
+6. **Fully Connected Layer**: The fully connected (dense) layer performs high-level reasoning using extracted features and produces the final classification scores.  
+7. **Output Layer**: The output layer converts final scores into probabilities using activation functions like Sigmoid (binary classification) or Softmax (multi-class classification).
+
+## What is ResNet?
+To overcome the challenges of training very deep neural networks, Residual Networks (ResNet) was introduced, which uses skip connections that allow the model to learn residual mappings instead of direct transformations making deep neural networks easier to train.
+- It helps prevent vanishing gradient problems in very deep models.
+- Skip connections let information flow directly across layers.
+- ResNet enables building networks with hundreds or even thousands of layers.
+- It is widely used in computer vision tasks like image classification and object detection.
+<br>
+<p align="center">
+  <img src="./Images/ResBlock.png" height="300" />
+  <br>
+  <em><strong>Residual Block</strong></em>
+</p>
+
+A residual block lets the network skip layers by adding the original input to the processed output, making deep networks easier to train.
