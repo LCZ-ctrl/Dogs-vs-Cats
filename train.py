@@ -28,7 +28,7 @@ def train():
         patience=5,
     )
 
-    # device info
+    # device info (gpu or cpu)
     if DEVICE == 'cuda':
         device = torch.cuda.current_device()
         gpu = torch.cuda.get_device_name(device)
@@ -164,7 +164,7 @@ def train():
     plt.grid(True, linestyle='--', alpha=0.7)
 
     plt.subplot(1, 2, 2)
-    plt.plot(epochs, history['train_acc'], label='Train Acc',color='#2ca02c')
+    plt.plot(epochs, history['train_acc'], label='Train Acc', color='#2ca02c')
     plt.plot(epochs, history['val_acc'], label='Val Acc', color='#d62728')
     plt.xlabel('Epochs')
     plt.ylabel('Acc')

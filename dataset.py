@@ -8,10 +8,13 @@ from config import *
 # data argumentation
 data_transforms = {
     'train': transforms.Compose([
-        transforms.RandomResizedCrop(IMG_SIZE),
+        transforms.RandomResizedCrop(IMG_SIZE, scale=(0.5, 1.0)),
         transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(degrees=15),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.03),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.RandomErasing(p=0.4, scale=(0.02, 0.2), ratio=(0.3, 3.3))
     ]),
 
     'val': transforms.Compose([

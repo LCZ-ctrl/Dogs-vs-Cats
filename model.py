@@ -51,16 +51,25 @@ class dcNet(nn.Module):
         super().__init__()
 
         self.stem = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, padding=1, bias=False),
+            nn.Conv2d(3, 32, kernel_size=3, padding=1, stride=2, bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+
+            nn.Conv2d(32, 32, kernel_size=3, padding=1, stride=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+
+            nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )
 
-        self.layer1 = ResidualBlock(32, 64, stride=2)
+        self.layer1 = ResidualBlock(64, 64, stride=1)
         self.layer2 = ResidualBlock(64, 128, stride=2)
         self.layer3 = ResidualBlock(128, 256, stride=2)
-        self.layer4 = ResidualBlock(256, 256, stride=1)
+        self.layer4 = ResidualBlock(256, 256, stride=2)
 
         self.classifier = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),
